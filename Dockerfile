@@ -5,7 +5,7 @@ FROM golang:1.22-alpine AS builder
 WORKDIR /app
 
 # Copy dependency files first (optimizes Docker layer caching)
-#COPY go.mod ./
+COPY go.mod ./
 
 # 1. Explicitly download and cache dependencies inside the container
 #RUN go mod download
