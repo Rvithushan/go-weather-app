@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy dependency files first (optimizes Docker layer caching)
 COPY go.mod ./
 
+# 1. Explicitly download and cache dependencies inside the container
+RUN go mod download
+
 # Copy source code and HTML templates
 COPY . .
 
