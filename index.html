@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Weather Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+        h1 { color: #333333; font-size: 24px; margin-bottom: 5px; }
+        .city { color: #777777; font-size: 14px; margin-bottom: 20px; }
+        .temp { font-size: 48px; font-weight: bold; color: #007bff; margin: 15px 0; }
+        .info { color: #555555; font-size: 16px; }
+        .error { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Weather Info</h1>
+        <p class="city">Location: {{.City}}</p>
+        
+        {{if .Error}}
+            <p class="error">{{.Error}}</p>
+        {{else}}
+            <div class="temp">{{.Temperature}} °C</div>
+            <p class="info">💨 Wind Speed: <strong>{{.WindSpeed}} km/h</strong></p>
+        {{end}}
+    </div>
+</body>
+</html>
