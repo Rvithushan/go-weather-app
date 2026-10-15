@@ -15,7 +15,7 @@ COPY . .
 
 # Build a static Linux binary
 #RUN CGO_ENABLED=0 GOOS=linux go build -o weather-app main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -o weather-app
+RUN CGO_ENABLED=0 GOOS=linux go build -o weather-app .
 
 # Stage 2: Lightweight runtime stage
 FROM alpine:latest
