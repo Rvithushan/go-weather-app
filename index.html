@@ -3,42 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Weather Dashboard</title>
+    <title>Go Weather App</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
             background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
         }
         .card {
-            background: #ffffff;
+            background: white;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 320px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-width: 300px;
         }
-        h1 { color: #333333; font-size: 24px; margin-bottom: 5px; }
-        .city { color: #777777; font-size: 14px; margin-bottom: 20px; }
-        .temp { font-size: 48px; font-weight: bold; color: #007bff; margin: 15px 0; }
-        .info { color: #555555; font-size: 16px; }
-        .error { color: #dc3545; font-weight: bold; }
+        input[type="text"] {
+            padding: 10px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Weather Info</h1>
-        <p class="city">Location: {{.City}}</p>
-        
+        <h1>Go Weather Checker</h1>
+
+        <!-- Search Form -->
+        <form action="/" method="GET">
+            <input type="text" name="city" placeholder="Enter city name..." required>
+            <button type="submit">Search</button>
+        </form>
+
         {{if .Error}}
             <p class="error">{{.Error}}</p>
         {{else}}
-            <div class="temp">{{.Temperature}} °C</div>
-            <p class="info">💨 Wind Speed: <strong>{{.WindSpeed}} km/h</strong></p>
+            {{if .City}}
+                <h2>Location: {{.City}}</h2>
+                <h3>Temperature: {{.Temperature}} °C</h3>
+                <h3>Wind Speed: {{.WindSpeed}} km/h</h3>
+            {{end}}
         {{end}}
     </div>
 </body>

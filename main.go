@@ -16,12 +16,60 @@ type WeatherResponse struct {
 	} `json:"current_weather"`
 }
 
+
+// GeocodingResponse maps the JSON from Open-Meteo Geocoding API
+type GeocodingResponse struct {
+	Results []struct {
+		Name      string  `json:"name"`
+		Latitude  float64 `json:"latitude"`
+		Longitude float64 `json:"longitude"`
+		Country   string  `json:"country"`
+	} `json:"results"`
+}
+
+
+
 // PageData holds the processed data we will eventually pass to our HTML page.
 type PageData struct {
 	City string
 	Temperature float64
 	WindSpeed float64
 	Error string
+}
+
+
+// fetchCoordinates calls Open-Meteo Geocoding API to convert a city name to coordinates
+func fetchCoordinates(city string) (float64, float64, string, error) {
+	// 1. Construct the Geocoding API URL with the searched city name
+	apiURL := fmt.Sprintf("https://geocoding-api.open-meteo.com/v1/search?name=%s&count=1&language=en&format=json", city)
+
+	// 2. Perform the HTTP GET request
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return 0, 0, "", fmt.Errorf("failed to connect to geocoding API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, 0, "", fmt.Errorf("geocoding API returned status %d", resp.StatusCode)
+	}
+
+	// 3. Decode the JSON response into our GeocodingResponse struct
+	var geoRes GeocodingResponse
+	if err := json.NewDecoder(resp.Body).Decode(&geoRes); err != nil {
+		return 0, 0, "", fmt.Errorf("failed to parse geocoding response: %w", err)
+	}
+
+	// 4. Check if any matching city results were found
+	if len(geoRes.Results) == 0 {
+		return 0, 0, "", fmt.Errorf("no location found for '%s'", city)
+	}
+
+	// Extract details for the first matching result
+	location := geoRes.Results[0]
+	displayName := fmt.Sprintf("%s, %s", location.Name, location.Country)
+
+	return location.Latitude, location.Longitude, displayName, nil
 }
 
 
@@ -53,19 +101,39 @@ func fetchWeather(lat, lon string) (*WeatherResponse, error) {
 }
 
 
-// 3. MIDDLE/LOWER: The HTTP Handler (THIS IS WHERE YOU LOAD index.html)
+// weatherHandler processes HTTP requests for the web server
 func weatherHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse the external HTML file
 	tmpl, err := template.ParseFiles("index.html")
 	if err != nil {
 		http.Error(w, "Unable to load HTML template", http.StatusInternalServerError)
 		return
 	}
 
-	data := PageData{City: "Colombo"}
+	// 1. Read the 'city' query parameter from the URL (?city=Name)
+	cityParam := r.URL.Query().Get("city")
 
-	// Fetch weather data for Colombo coordinates
-	weather, err := fetchWeather("6.9271", "79.8612")
+	// Default to Colombo if no city parameter is provided
+	if cityParam == "" {
+		cityParam = "Colombo"
+	}
+
+	data := PageData{}
+
+	// 2. Fetch coordinates for the requested city
+	lat, lon, displayName, err := fetchCoordinates(cityParam)
+	if err != nil {
+		data.Error = err.Error()
+		tmpl.Execute(w, data)
+		return
+	}
+
+	data.City = displayName
+
+	// 3. Fetch weather using the retrieved coordinates (convert float64 to string)
+	latStr := fmt.Sprintf("%f", lat)
+	lonStr := fmt.Sprintf("%f", lon)
+
+	weather, err := fetchWeather(latStr, lonStr)
 	if err != nil {
 		data.Error = err.Error()
 	} else {
@@ -73,7 +141,7 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 		data.WindSpeed = weather.CurrentWeather.WindSpeed
 	}
 
-	// Render the template with data and send it to the browser
+	// 4. Render index.html with the populated PageData
 	tmpl.Execute(w, data)
 }
 
